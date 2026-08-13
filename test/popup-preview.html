@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>MetricLens 面板预览</title>
+<style>
+  body{margin:0;background:#e9ecf0;font-family:-apple-system,"PingFang SC",sans-serif}
+  .frame{width:380px;height:520px;margin:24px auto;border:1px solid #c9d0d8;border-radius:10px;
+         overflow:hidden;background:#fff;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+  .cap{text-align:center;font-size:12px;color:#61686f;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="frame" id="frame"></div>
+<p class="cap">这是扩展面板（popup.html）的真实渲染，加载的是 extension/ 下的原始文件</p>
+
+<script src="fixture.js"></script>
+<script>
+/* chrome API shim —— 必须在 popup.js 之前就位 */
+window.chrome = {
+  storage: {
+    local: {
+      _d: { terms: TERMS_PAYLOAD, settings: { enabled: true, autoHighlight: false },
+            lastSync: null },
+      get: function (keys, cb) {
+        var out = {}, self = this;
+        (Array.isArray(keys) ? keys : [keys]).forEach(function (k) { out[k] = self._d[k]; });
+        setTimeout(function () { cb(out); }, 0);
+      },
+      set: function (o, cb) { for (var k in o) this._d[k] = o[k]; if (cb) cb(); }
+    },
+    onChanged: { addListener: function () {} }
+  },
+  runtime: {
+    getURL: function (p) { return '../extension/' + p; },
+    sendMessage: function (msg, cb) { cb({ ok: false, reason: '未配置远程地址，正在使用内置词库' }); }
+  }
+};
+
+/* 把真实的 popup.html 载进来跑 */
+(async function () {
+  const html = await (await fetch('../extension/popup.html')).text();
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = '../extension/popup.css';
+  document.head.appendChild(link);
+
+  // popup.css 里的样式挂在 body 上，这里把它作用到 .frame
+  const fix = document.createElement('style');
+  fix.textContent = '#frame{display:flex;flex-direction:column;font:13px/1.6 -apple-system,"PingFang SC",sans-serif;color:var(--fg);background:var(--bg)}';
+  document.head.appendChild(fix);
+
+  document.getElementById('frame').innerHTML = doc.body.innerHTML
+    .replace(/<script[\s\S]*?<\/script>/g, '');
+
+  for (const src of ['lib/dict.js', 'lib/md.js', 'popup.js']) {
+    await new Promise(function (res, rej) {
+      const s = document.createElement('script');
+      s.src = '../extension/' + src;
+      s.onload = res; s.onerror = rej;
+      document.body.appendChild(s);
+    });
+  }
+  window.__popupReady = true;
+})();
+</script>
+</body>
+</html>

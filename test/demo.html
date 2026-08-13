@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>MetricLens 本地验证页</title>
+<style>
+  body{font:14px/1.7 -apple-system,"PingFang SC",sans-serif;margin:0;padding:28px 32px;color:#1f2328;background:#f7f8fa}
+  h1{font-size:19px;margin:0 0 4px}
+  .tip{color:#61686f;font-size:12.5px;margin-bottom:20px}
+  .panel{background:#fff;border:1px solid #e3e7ec;border-radius:10px;padding:18px 20px;margin-bottom:16px;max-width:860px}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{border:1px solid #e8ebef;padding:7px 10px;text-align:left}
+  th{background:#f6f8fa;font-weight:620}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  code{background:#f2f4f7;padding:1px 5px;border-radius:4px;font-size:12.5px}
+  .case{margin:6px 0;color:#3a4149}
+</style>
+</head>
+<body>
+  <h1>MetricLens 本地验证页</h1>
+  <p class="tip">这个页面模拟 Chrome 扩展环境，用来在真浏览器里验证划词卡片。选中下面任意指标名试试。</p>
+
+  <div class="panel">
+    <h3 style="margin:0 0 10px;font-size:15px">投放周报（示例数据）</h3>
+    <table>
+      <thead><tr><th>渠道</th><th class="num">CPI</th><th class="num">eCPM</th><th class="num">IPU</th><th class="num">ROAS D1</th><th class="num">LT30</th></tr></thead>
+      <tbody>
+        <tr><td>Meta</td><td class="num">1.25</td><td class="num">24.8</td><td class="num">4.5</td><td class="num">22%</td><td class="num">2.8</td></tr>
+        <tr><td>TikTok</td><td class="num">0.98</td><td class="num">19.2</td><td class="num">3.9</td><td class="num">18%</td><td class="num">2.3</td></tr>
+        <tr><td>AppLovin</td><td class="num">1.60</td><td class="num">31.5</td><td class="num">5.2</td><td class="num">27%</td><td class="num">3.1</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin:0 0 10px;font-size:15px">测试用例</h3>
+    <p class="case">① 单词：<span id="t1">eCPM</span></p>
+    <p class="case">② 中文别名：<span id="t2">人均展示次数</span></p>
+    <p class="case">③ 常见误拼：<span id="t3">AppFlyer</span></p>
+    <p class="case">④ 长句多词：<span id="t4">这个渠道的 eCPM 有 25 元，IPU 4.5，但 ROAS D7 只有 18%，要不要继续投</span></p>
+    <p class="case">⑤ 不该命中：<span id="t5">ACPI 电源管理规范</span></p>
+    <p class="case">⑥ 长别名优先：<span id="t6">LT30 只有 2.8 天</span></p>
+  </div>
+
+<script src="fixture.js"></script>
+<script>
+/* ---- 最小 chrome API shim，让 content.js 能在普通页面跑起来 ---- */
+window.chrome = {
+  storage: {
+    local: {
+      _d: { terms: TERMS_PAYLOAD, settings: { enabled: true, autoHighlight: false } },
+      get: function (keys, cb) {
+        var out = {};
+        (Array.isArray(keys) ? keys : [keys]).forEach(function (k) { out[k] = this._d[k]; }, this);
+        setTimeout(function () { cb(out); }, 0);
+      },
+      set: function (o, cb) { for (var k in o) this._d[k] = o[k]; if (cb) cb(); }
+    },
+    onChanged: { addListener: function () {} }
+  },
+  runtime: { getURL: function (p) { return p; }, sendMessage: function () {} }
+};
+
+/* ---- 测试辅助：选中某个元素的文本并触发 mouseup ---- */
+window.selectAndFire = function (id) {
+  var el = document.getElementById(id);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  var r = document.createRange();
+  r.selectNodeContents(el);
+  sel.addRange(r);
+  document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+  return el.textContent;
+};
+window.cardState = function () {
+  var h = document.querySelector('[data-metriclens]');
+  if (!h || !h.shadowRoot) return { exists: false };
+  var c = h.shadowRoot.querySelector('.ml-card');
+  if (!c || c.style.display === 'none') return { exists: true, visible: false };
+  return {
+    exists: true, visible: true,
+    name: (c.querySelector('.ml-name') || {}).textContent || '',
+    sub: (c.querySelector('.ml-sub') || {}).textContent || '',
+    domain: (c.querySelector('.ml-domain') || {}).textContent || '',
+    formula: (c.querySelector('.ml-formula') || {}).textContent || '',
+    chips: Array.prototype.map.call(c.querySelectorAll('.ml-chip'), function (x) { return x.textContent; }),
+    items: Array.prototype.map.call(c.querySelectorAll('.ml-item-n'), function (x) { return x.textContent; }),
+    footBtn: (c.querySelector('.ml-foot .ml-btn') || {}).textContent || ''
+  };
+};
+window.clickInCard = function (selector) {
+  var c = document.querySelector('[data-metriclens]').shadowRoot;
+  var el = c.querySelector(selector);
+  if (!el) return 'not found: ' + selector;
+  el.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
+  return 'clicked';
+};
+</script>
+<script src="../extension/lib/dict.js"></script>
+<script src="../extension/lib/md.js"></script>
+<script src="../extension/content.js"></script>
+</body>
+</html>
