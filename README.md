@@ -8,7 +8,7 @@
 
 ## 安装（约 1 分钟）
 
-1. 下载 `metric-lens-v1.0.1.zip` 并解压，得到一个 `metric-lens` 文件夹
+1. 下载 `metric-lens-v1.0.2.zip` 并解压，得到一个 `metric-lens` 文件夹
 2. Chrome 地址栏打开 `chrome://extensions`
 3. 打开右上角的 **开发者模式**
 4. 点 **加载已解压的扩展程序**，选中刚才解压出来的 `metric-lens` 文件夹
@@ -51,9 +51,10 @@
 
 ## 词库
 
-当前 **21 条词条**，覆盖两个领域：
+当前 **26 条词条**，覆盖三个领域：
 
-- **买量与变现** —— CPM、eCPM、CVR、IPM、CPI、CAC、ARPU、ARPPU、IPU、LTV、LT30/LT180、ROAS、ROAS0/ROAS1、Cohort、ABO/CBO
+- **买量与变现** —— CPM、eCPM、CVR、CPI、CAC、ARPU、ARPPU、IPU、LTV、LT30/LT180、ROAS、ROAS0/ROAS1、Cohort、ABO/CBO
+- **素材与创意** —— Hook rate、Thruplay、CTR、CPC、IPM
 - **数据分析与归因** —— Firebase、GA4、AppsFlyer
 
 匹配支持别名和常见误拼：`ECPM`/`千次展示收益`、`ROAS D1`/`次日回收`、`AppFlyer`（少个 s）都能查到。

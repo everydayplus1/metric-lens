@@ -16,6 +16,11 @@
     "千次展示收益",
     "effective CPM"
   ],
+  "CTR": [
+    "点击率",
+    "Click-Through Rate",
+    "Click Through Rate"
+  ],
   "CVR": [
     "转化率",
     "Conversion Rate",
@@ -25,6 +30,13 @@
     "Installs Per Mille",
     "每千次展示安装数",
     "每千展安装"
+  ],
+  "CPC": [
+    "Cost Per Click",
+    "单次点击成本",
+    "点击成本",
+    "CPC (all)",
+    "CPC (link click)"
   ],
   "CPI": [
     "单次安装成本",
@@ -103,6 +115,19 @@
     "广告系列预算优化",
     "Ad Set Budget Optimization",
     "Campaign Budget Optimization"
+  ],
+  "Hook rate": [
+    "Hook",
+    "Hook率",
+    "钩子率",
+    "三秒留存",
+    "3秒播放率"
+  ],
+  "Thruplay": [
+    "ThruPlay",
+    "Thruplay rate",
+    "有效播放",
+    "15秒观看"
   ],
   "Firebase": [
     "Firebase Analytics",

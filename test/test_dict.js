@@ -45,6 +45,17 @@ eq(nameOf(dict.lookup('IPDAU')), 'IPU', 'IPDAU 是 IPU 的口径变体，仍指�
 var both = dict.scan('这套素材 IPM 12，CVR 26%').map(function (h) { return h.term.name; });
 ok(both.indexOf('IPM') !== -1 && both.indexOf('CVR') !== -1, 'IPM 和 CVR 能同时扫出', both.join(','));
 
+/* --- 素材诊断漏斗（Meta 报表列名） --- */
+eq(nameOf(dict.lookup('Hook')), 'Hook rate', '报表列名 Hook 指向 Hook rate');
+eq(nameOf(dict.lookup('Thruplay')), 'Thruplay', 'Thruplay');
+eq(nameOf(dict.lookup('ThruPlay')), 'Thruplay', 'ThruPlay 大小写变体');
+eq(nameOf(dict.lookup('CPC')), 'CPC', 'CPC');
+eq(nameOf(dict.lookup('CTR')), 'CTR', 'CTR 独立于 CVR');
+eq(dict.lookup('完播率'), null, '完播率 ≠ Thruplay，不该命中');
+/* 直接扫一整行报表表头 */
+var header = dict.scan('CVR  IPM  CPM  CPC  Hook  Thruplay').map(function (h) { return h.term.name; });
+eq(header.length, 6, '一行表头扫出 6 个指标', header.join(','));
+
 /* --- 长句扫词 --- */
 var hits = dict.scan('这个渠道 eCPM 25 元，IPU 4.5，ROAS D7 达到 35%，可以加预算');
 var names = hits.map(function (h) { return h.term.name; });
