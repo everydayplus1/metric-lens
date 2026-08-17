@@ -6,9 +6,11 @@
 
 ---
 
+仓库：https://github.com/everydayplus1/metric-lens
+
 ## 安装（约 1 分钟）
 
-1. 下载 `metric-lens-v1.0.2.zip` 并解压，得到一个 `metric-lens` 文件夹
+1. 从 [dist/](dist/) 下载最新的 `metric-lens-v*.zip` 并解压，得到一个 `metric-lens` 文件夹
 2. Chrome 地址栏打开 `chrome://extensions`
 3. 打开右上角的 **开发者模式**
 4. 点 **加载已解压的扩展程序**，选中刚才解压出来的 `metric-lens` 文件夹
@@ -61,16 +63,33 @@
 
 ## 词库怎么更新
 
-词条来源是一个 Markdown 知识库，`build.py` 负责把它编译成 `terms.json`：
+**已经配好自动更新了，装完就不用管。**
 
-```bash
-python3 build.py          # 重新生成 data/terms.json 和 extension/data/terms.json
-python3 build.py --check  # 只校验不写文件
+词条来源是一个 Markdown 知识库，`build.py` 把它编译成 `terms.json` 推到本仓库；
+每个人的插件每 6 小时拉一次，面板里也能随时手动点「检查更新」。
+**加了新词条不需要重装扩展，更不需要重新发 zip 给同学。**
+
+```
+知识库 *.md  ──build.py──>  data/terms.json  ──git push──>  GitHub raw
+                                                                 │
+                                              每 6 小时 / 手动 ←──┘
+                                                                 ▼
+                                                        所有人的插件
 ```
 
-想让所有人自动拿到新词条，把 `data/terms.json` push 到一个 public 仓库，然后把
-`extension/background.js` 顶部的 `REMOTE_URL` 填成该文件的 raw 地址即可。
-插件每 6 小时同步一次，面板里也能手动点「检查更新」。远程拉取失败时自动沿用内置词库，不会白屏。
+维护者更新词库只需要一条命令：
+
+```bash
+./sync.sh          # 构建 -> 提交 -> 推送，并打印新的词条数
+```
+
+几个设计细节：
+
+- **判据是构建日期不是版本号**。词库随时在长，版本号不会每次都改，
+  拿版本号当唯一判据会让新词条永远同步不过来。
+- **远程条数骤减时不覆盖本地**（低于本地一半就跳过），防止数据出问题时把大家的词库清空。
+- **拉取失败自动沿用内置词库**，不会白屏，离线也能正常用。
+- 扩展**本体**（代码）的更新仍需重新加载解压包 —— 除非走 Chrome 商店上架（见文末）。
 
 ## 想加词条？
 
@@ -127,9 +146,15 @@ metric-lens/
 ## 测试
 
 ```bash
-/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc \
-  test/fixture.js extension/lib/dict.js extension/lib/md.js test/test_dict.js
+JSC=/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc
+
+# 词典匹配与 Markdown 渲染
+"$JSC" test/fixture.js extension/lib/dict.js extension/lib/md.js test/test_dict.js
+
+# 词库同步判据
+"$JSC" test/chrome-shim.js extension/background.js test/test_sync.js
 ```
 
 覆盖大小写/中文别名/误拼、词边界（`CPIA` 不会误报成 `CPI`）、长别名优先（`LT30` 不被 `LT` 抢）、
 Markdown 表格与转义、别名不得指向相关但不同的概念，以及全部词条整篇渲染不报错。
+同步判据单独测，因为它错了不会报错、只会让所有人静默收不到更新。

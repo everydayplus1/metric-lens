@@ -30,7 +30,7 @@ OUT_PATHS = [
     os.path.join(HERE, 'data', 'terms.json'),
     os.path.join(HERE, 'extension', 'data', 'terms.json'),
 ]
-VERSION = '1.0.2'
+VERSION = '1.0.3'
 
 # 这些标题是概览/串讲，不是可划词的名词，只在面板里出现
 OVERVIEW_PREFIXES = ('先看全局', '实战', '目录')
