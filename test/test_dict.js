@@ -32,6 +32,19 @@ eq(nameOf(dict.lookup('IPDAU')), 'IPU', 'lookup IPDAU');
 eq(dict.lookup('这不是一个指标'), null, 'lookup 未收录词返回 null');
 eq(dict.lookup(''), null, 'lookup 空串返回 null');
 
+/* --- 回归：别名不能指向「相关但不同」的概念 ---
+   起因：曾把 IPM 写成 CVR 的别名，在报表页选中 IPM 弹出的是 CVR 的卡片 --- */
+eq(nameOf(dict.lookup('IPM')), 'IPM', 'IPM 指向自己，不是 CVR');
+eq(nameOf(dict.lookup('每千次展示安装数')), 'IPM', 'IPM 中文名指向 IPM');
+eq(nameOf(dict.lookup('ARPPU')), 'ARPPU', 'ARPPU 指向自己，不是 ARPU');
+eq(dict.lookup('Adjust'), null, 'Adjust 是竞品公司，不该指向 AppsFlyer');
+eq(dict.lookup('UA'), null, 'UA 是上一代产品，不该指向 GA4');
+eq(dict.lookup('Universal Analytics'), null, 'Universal Analytics 同理');
+eq(nameOf(dict.lookup('IPDAU')), 'IPU', 'IPDAU 是 IPU 的口径变体，仍指向 IPU');
+/* 同屏出现时两者都要能各自扫出来 */
+var both = dict.scan('这套素材 IPM 12，CVR 26%').map(function (h) { return h.term.name; });
+ok(both.indexOf('IPM') !== -1 && both.indexOf('CVR') !== -1, 'IPM 和 CVR 能同时扫出', both.join(','));
+
 /* --- 长句扫词 --- */
 var hits = dict.scan('这个渠道 eCPM 25 元，IPU 4.5，ROAS D7 达到 35%，可以加预算');
 var names = hits.map(function (h) { return h.term.name; });

@@ -28,7 +28,7 @@ OUT_PATHS = [
     os.path.join(HERE, 'data', 'terms.json'),
     os.path.join(HERE, 'extension', 'data', 'terms.json'),
 ]
-VERSION = '1.0.0'
+VERSION = '1.0.1'
 
 # 这些标题是概览/串讲，不是可划词的名词，只在面板里出现
 OVERVIEW_PREFIXES = ('先看全局', '实战', '目录')
@@ -166,11 +166,13 @@ def main():
     ap.add_argument('--check', action='store_true')
     args = ap.parse_args()
 
-    manual = {}
+    manual, reviewed = {}, {}
     apath = os.path.join(HERE, 'aliases.json')
     if os.path.exists(apath):
-        manual = {k: v for k, v in json.load(io.open(apath, encoding='utf-8')).items()
-                  if not k.startswith('_')}
+        _raw = json.load(io.open(apath, encoding='utf-8'))
+        manual = {k: v for k, v in _raw.items() if not k.startswith('_')}
+        reviewed = {k: set(v) for k, v in _raw.get('_reviewed', {}).items()
+                    if not k.startswith('_')}
 
     files = sorted(f for f in os.listdir(args.src)
                    if f.endswith('.md') and f != 'README.md')
@@ -191,6 +193,20 @@ def main():
             if key in seen_alias and seen_alias[key] != t['id']:
                 problems.append('别名冲突 "%s"：%s vs %s' % (a, seen_alias[key], t['id']))
             seen_alias[key] = t['id']
+    # 别名防呆：把「相关但不同的概念」错写成别名，是最容易犯又最难发现的错
+    # （曾把 IPM 当成 CVR 的别名，于是选中 IPM 弹出的是 CVR 的卡片）。
+    # 判据：该别名在正文里是以「缩写（English Full Name，…）」的形式被介绍的，
+    # 说明它自带完整定义，是个独立概念而非同一个词的另一种写法。
+    # 另一半防线是下面已有的别名冲突检查——别名撞上任何已存在词条的主名即报错。
+    for t in all_terms:
+        for a in manual.get(t['name'], []):
+            if a.lower() == t['name'].lower() or a in reviewed.get(t['name'], ()):
+                continue
+            if re.search(re.escape(a) + r'\s*[（(]\s*[A-Za-z][A-Za-z\s\-]{4,}', t['full']):
+                problems.append(
+                    '别名可疑："%s" 被列为 %s 的别名，但正文里给了它独立的英文全称 —— '
+                    '它多半该单独建一个词条' % (a, t['name']))
+
     # 泄漏兜底检查
     BANNED = ['arrowdoodle', 'arrowflow', 'skyloop', 'liuchengxiang']
     for t in all_terms:

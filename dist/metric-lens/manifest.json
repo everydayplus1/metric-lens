@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MetricLens 指标速查",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "在 GA4 / AppsFlyer / Meta 广告后台等任意页面划词，即时查看买量与变现指标的含义、公式和易混淆点。",
   "permissions": ["storage", "alarms"],
   "host_permissions": ["https://raw.githubusercontent.com/*"],

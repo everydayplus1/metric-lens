@@ -8,7 +8,7 @@
 
 ## 安装（约 1 分钟）
 
-1. 下载 `metric-lens-v1.0.1.zip` 并解压，得到一个 `metric-lens` 文件夹
+1. 下载 `metric-lens-v1.0.0.zip` 并解压，得到一个 `metric-lens` 文件夹
 2. Chrome 地址栏打开 `chrome://extensions`
 3. 打开右上角的 **开发者模式**
 4. 点 **加载已解压的扩展程序**，选中刚才解压出来的 `metric-lens` 文件夹
@@ -51,9 +51,9 @@
 
 ## 词库
 
-当前 **21 条词条**，覆盖两个领域：
+当前 **19 条词条**，覆盖两个领域：
 
-- **买量与变现** —— CPM、eCPM、CVR、IPM、CPI、CAC、ARPU、ARPPU、IPU、LTV、LT30/LT180、ROAS、ROAS0/ROAS1、Cohort、ABO/CBO
+- **买量与变现** —— CPM、eCPM、CVR、CPI、CAC、ARPU、IPU、LTV、LT30/LT180、ROAS、ROAS0/ROAS1、Cohort、ABO/CBO
 - **数据分析与归因** —— Firebase、GA4、AppsFlyer
 
 匹配支持别名和常见误拼：`ECPM`/`千次展示收益`、`ROAS D1`/`次日回收`、`AppFlyer`（少个 s）都能查到。
@@ -90,9 +90,7 @@ python3 build.py --check  # 只校验不写文件
 ```
 
 - 第一个不超过 8 行的代码块会被当成**公式**显示在卡片上
-- 缩写、中文名、常见误拼写进 `aliases.json`。**只写「同一个概念的不同写法」** ——
-  相关但不同的概念（IPM 之于 CVR、ARPPU 之于 ARPU、Adjust 之于 AppsFlyer）必须各自建词条，
-  否则选中它会弹出另一个词的卡片。`build.py` 有两道防呆检查会拦住这种错
+- 缩写、中文名、常见误拼写进 `aliases.json`
 - 涉及内部数据的段落前加一行 `<!-- private -->`，**构建时会自动剔除，不会进入公开数据**（`build.py` 还会扫描项目代号做兜底，命中就直接中止构建）
 
 ## 上架 Chrome 商店（可选）
@@ -131,4 +129,4 @@ metric-lens/
 ```
 
 覆盖大小写/中文别名/误拼、词边界（`CPIA` 不会误报成 `CPI`）、长别名优先（`LT30` 不被 `LT` 抢）、
-Markdown 表格与转义、别名不得指向相关但不同的概念，以及全部词条整篇渲染不报错。
+Markdown 表格与转义，以及全部词条整篇渲染不报错。
