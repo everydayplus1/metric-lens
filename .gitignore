@@ -1,3 +1,4 @@
-.stage/
 .DS_Store
+.stage/
+dist/metric-lens/
 test/fixture.js
