@@ -16,7 +16,7 @@
 ## 数据流
 
 ```
-/Users/lcx/knowledge/*.md          私有仓库，词条原文
+~/knowledge/*.md          私有仓库，词条原文
         │
         │  build.py
         │    ├─ 解析 ## 标题 → 词条

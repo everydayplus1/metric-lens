@@ -3,12 +3,14 @@
 """
 MetricLens 数据构建脚本
 
-把 /Users/lcx/knowledge/*.md 解析成扩展用的 terms.json。
+把知识库里的 *.md 解析成扩展用的 terms.json。
 
 用法：
-    python3 build.py                 # 用默认知识库路径
+    python3 build.py                 # 默认读 ~/knowledge
     python3 build.py --src <dir>     # 指定知识库目录
     python3 build.py --check         # 只校验不写文件
+
+    知识库路径也可以用环境变量 METRICLENS_SRC 指定。
 
 安全约定：
     md 里单独一行的 <!-- private --> 会让紧随其后的段落（到下一个空行为止）
@@ -22,7 +24,7 @@ import re
 import sys
 from datetime import date
 
-DEFAULT_SRC = '/Users/lcx/knowledge'
+DEFAULT_SRC = os.environ.get('METRICLENS_SRC', os.path.expanduser('~/knowledge'))
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_PATHS = [
     os.path.join(HERE, 'data', 'terms.json'),

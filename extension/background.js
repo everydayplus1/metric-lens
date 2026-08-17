@@ -6,7 +6,7 @@
  *
  * REMOTE_URL 为空时完全不联网，插件用扩展内置的那份数据照常工作。
  */
-const REMOTE_URL = '';   // 例：https://raw.githubusercontent.com/<user>/metric-lens/main/data/terms.json
+const REMOTE_URL = 'https://raw.githubusercontent.com/everydayplus1/metric-lens/main/data/terms.json';
 const ALARM = 'metriclens-sync';
 const SYNC_HOURS = 6;
 
@@ -25,6 +25,19 @@ function cmpVersion(a, b) {
   return 0;
 }
 
+/**
+ * 该不该用远程这份？
+ * 优先比构建日期而不是版本号——词库随时在长，版本号不会每次都改，
+ * 拿版本号当唯一判据会让新词条永远同步不过来。
+ */
+function isNewer(remote, local) {
+  if (!local || !local.terms) return true;
+  if (remote.generated && local.generated && remote.generated !== local.generated) {
+    return remote.generated > local.generated;
+  }
+  return cmpVersion(remote.version, local.version) >= 0;
+}
+
 /** 拉远程词库；返回 {ok, reason, version, count} */
 async function sync(force) {
   if (!REMOTE_URL) return { ok: false, reason: '未配置远程地址，正在使用内置词库' };
@@ -36,8 +49,12 @@ async function sync(force) {
       return { ok: false, reason: '远程数据格式不对，已保留本地词库' };
     }
     const cur = (await chrome.storage.local.get('terms')).terms;
-    if (!force && cur && cmpVersion(payload.version, cur.version) < 0) {
-      return { ok: false, reason: '远程版本更旧，跳过' };
+    // 远程条数骤减多半是数据出了问题，宁可不动本地那份
+    if (cur && cur.terms && payload.terms.length < cur.terms.length * 0.5) {
+      return { ok: false, reason: '远程词条数异常偏少，已保留本地词库' };
+    }
+    if (!force && !isNewer(payload, cur)) {
+      return { ok: false, reason: '已是最新（' + (cur.generated || cur.version) + '）' };
     }
     await chrome.storage.local.set({
       terms: payload,
