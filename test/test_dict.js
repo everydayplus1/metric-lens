@@ -56,6 +56,18 @@ eq(dict.lookup('完播率'), null, '完播率 ≠ Thruplay，不该命中');
 var header = dict.scan('CVR  IPM  CPM  CPC  Hook  Thruplay').map(function (h) { return h.term.name; });
 eq(header.length, 6, '一行表头扫出 6 个指标', header.join(','));
 
+/* --- 投放结构与成本口径 --- */
+eq(nameOf(dict.lookup('CPA')), 'CPA', 'CPA');
+eq(nameOf(dict.lookup('Campaign')), 'Campaign', 'Campaign');
+eq(nameOf(dict.lookup('compaign')), 'Campaign', '常见误拼 compaign');
+eq(nameOf(dict.lookup('广告系列')), 'Campaign', '中文名 广告系列');
+eq(nameOf(dict.lookup('ABO')), 'ABO / CBO', 'ABO');
+eq(nameOf(dict.lookup('CBO')), 'ABO / CBO', 'CBO');
+/* CPA / CPI / CAC 是三个不同口径，不能互指 */
+ok(nameOf(dict.lookup('CPA')) !== nameOf(dict.lookup('CPI')), 'CPA 不等于 CPI');
+ok(nameOf(dict.lookup('CPA')) !== nameOf(dict.lookup('CAC')), 'CPA 不等于 CAC');
+eq(nameOf(dict.lookup('CAC')), '获客成本 / CAC', 'CAC 仍指向获客成本');
+
 /* --- 长句扫词 --- */
 var hits = dict.scan('这个渠道 eCPM 25 元，IPU 4.5，ROAS D7 达到 35%，可以加预算');
 var names = hits.map(function (h) { return h.term.name; });
