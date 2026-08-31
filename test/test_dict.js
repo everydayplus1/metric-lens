@@ -68,6 +68,17 @@ ok(nameOf(dict.lookup('CPA')) !== nameOf(dict.lookup('CPI')), 'CPA 不等于 CPI
 ok(nameOf(dict.lookup('CPA')) !== nameOf(dict.lookup('CAC')), 'CPA 不等于 CAC');
 eq(nameOf(dict.lookup('CAC')), '获客成本 / CAC', 'CAC 仍指向获客成本');
 
+/* --- 回收曲线逐日写法 与 DAU --- */
+['ROAS0','ROAS1','ROAS2','ROAS3','ROAS5','ROAS7','ROAS30'].forEach(function (k) {
+  eq(nameOf(dict.lookup(k)), 'ROAS0 / ROAS1', k + ' 指向回收率词条');
+});
+eq(nameOf(dict.lookup('ROAS D3')), 'ROAS0 / ROAS1', '带空格的 ROAS D3');
+eq(nameOf(dict.lookup('DAU')), 'DAU', 'DAU');
+eq(nameOf(dict.lookup('日活')), 'DAU', '中文 日活');
+eq(dict.lookup('MAU'), null, 'MAU 时间窗不同，不该指向 DAU');
+/* DAU 与 ROAS 是两个不同词条，别互相吃掉 */
+ok(nameOf(dict.lookup('DAU')) !== nameOf(dict.lookup('ARPU')), 'DAU 不等于 ARPU');
+
 /* --- 长句扫词 --- */
 var hits = dict.scan('这个渠道 eCPM 25 元，IPU 4.5，ROAS D7 达到 35%，可以加预算');
 var names = hits.map(function (h) { return h.term.name; });
