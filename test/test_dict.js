@@ -79,6 +79,34 @@ eq(dict.lookup('MAU'), null, 'MAU 时间窗不同，不该指向 DAU');
 /* DAU 与 ROAS 是两个不同词条，别互相吃掉 */
 ok(nameOf(dict.lookup('DAU')) !== nameOf(dict.lookup('ARPU')), 'DAU 不等于 ARPU');
 
+/* --- 模式匹配：带任意数字的时间窗写法都要认得，不能靠枚举 --- */
+[0,1,2,3,7,14,28,30,45,90,180].forEach(function (n) {
+  eq(nameOf(dict.lookup('ROAS' + n)), 'ROAS0 / ROAS1', 'ROAS' + n);
+});
+eq(nameOf(dict.lookup('ROAS D28')), 'ROAS0 / ROAS1', '带空格的 ROAS D28');
+eq(nameOf(dict.lookup('roas28')), 'ROAS0 / ROAS1', '小写 roas28');
+[7,14,30,90,180].forEach(function (n) {
+  eq(nameOf(dict.lookup('LTV' + n)), 'LTV', 'LTV' + n);
+  eq(nameOf(dict.lookup('LT' + n)), 'LT30 / LT180', 'LT' + n);
+});
+eq(nameOf(dict.lookup('LTV(D14)')), 'LTV', 'LTV(D14) 括号写法');
+/* hint 要按选中的天数生成 */
+var m28 = dict.resolveMatch('ROAS28');
+ok(m28.hint.indexOf('28') !== -1 && m28.hint.indexOf('累计') !== -1, 'ROAS28 的 hint 提到 28 天', m28.hint);
+ok(dict.resolveMatch('LT90').hint.indexOf('90 天') !== -1, 'LT90 的 hint', dict.resolveMatch('LT90').hint);
+/* 已收录的词不该被 hint 污染 */
+eq(dict.resolveMatch('eCPM').hint, '', '普通词条没有 hint');
+/* 数字兜底：模式没覆盖到的也别弹空 */
+eq(nameOf(dict.lookup('CPM2024')), 'CPM', '剥掉尾部数字兜底到 CPM');
+eq(dict.lookup('12345'), null, '纯数字不该命中');
+eq(dict.lookup('A1'), null, '过短的残余不兜底');
+/* 长句里的 ROAS28 也要扫得出来 */
+var sc = dict.scan('这批量 ROAS28 才 62%，ROAS7 只有 31%');
+eq(sc.length, 1, 'ROAS28 与 ROAS7 同属一个词条，去重后一条', sc.map(function(h){return h.term.name}).join(','));
+ok(sc[0].hint.indexOf('28') !== -1, '长句里也带上 hint', sc[0].hint);
+var sc2 = dict.scan('LT90 撑不住 ROAS180');
+eq(sc2.length, 2, 'LT90 和 ROAS180 分属两个词条', sc2.map(function(h){return h.term.name}).join(','));
+
 /* --- 长句扫词 --- */
 var hits = dict.scan('这个渠道 eCPM 25 元，IPU 4.5，ROAS D7 达到 35%，可以加预算');
 var names = hits.map(function (h) { return h.term.name; });

@@ -26,6 +26,9 @@
     '.ml-close:hover{color:#1f2328}',
     '.ml-body{padding:11px 13px;max-height:400px;overflow-y:auto;overscroll-behavior:contain}',
     '.ml-sum{margin-bottom:9px}',
+    '.ml-hintbox{background:#f0f6ff;border-left:3px solid #2f6fd0;padding:7px 10px;',
+    '  border-radius:0 6px 6px 0;margin-bottom:10px;font-size:12.5px;line-height:1.55}',
+    '.ml-hintbox b{font-weight:640}',
     '.ml-formula{background:#f6f8fa;border:1px solid #eaeef2;border-radius:6px;padding:8px 10px;',
     '  font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;margin-bottom:9px}',
     '.ml-rel{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:#61686f}',
@@ -64,6 +67,7 @@
     '  .ml-full code{background:#2c3238}',
     '  .ml-chip{background:#2b3138;border-color:#3a4149;color:#7ab0f5}',
     '  .ml-item:hover{background:#2a3138;border-color:#3a4149}',
+    '  .ml-hintbox{background:#232c39;border-left-color:#4d84d6}',
     '  .ml-full th{background:#1e2226}',
     '  .ml-full th,.ml-full td{border-color:#3a4149}',
     '}'
@@ -149,7 +153,7 @@
 
   function esc(s) { return MetricLensMD.esc(s); }
 
-  function termCard(term, expanded) {
+  function termCard(term, expanded, hint) {
     var h = '';
     h += '<div class="ml-head">';
     h += '<span class="ml-name">' + esc(term.name) + '</span>';
@@ -157,6 +161,9 @@
     h += '<span class="ml-domain">' + esc(term.domain) + '</span>';
     h += '<button class="ml-close" data-act="close" title="关闭">&#10005;</button>';
     h += '</div><div class="ml-body">';
+
+    // 用户选的是 ROAS28 这种带天数的写法时，先直接回答它是什么
+    if (hint) h += '<div class="ml-hintbox">' + MetricLensMD.inline(hint) + '</div>';
 
     if (expanded) {
       h += '<div class="ml-full">' + MetricLensMD.render(term.full) + '</div>';
@@ -185,18 +192,20 @@
     h += '<div class="ml-body"><ul class="ml-list">';
     hits.forEach(function (hit) {
       var t = hit.term;
+      var sub = hit.hint || (t.summary || '').replace(/\*\*/g, '');
       h += '<li class="ml-item" data-act="goto" data-term="' + esc(t.name) + '">'
-         + '<span class="ml-item-n">' + esc(t.name) + '</span>'
-         + '<span class="ml-item-s">' + esc((t.summary || '').replace(/\*\*/g, '').slice(0, 48)) + '</span>'
+         + '<span class="ml-item-n">' + esc(hit.matched || t.name) + '</span>'
+         + '<span class="ml-item-s">' + esc(sub.slice(0, 48)) + '</span>'
          + '</li>';
     });
     h += '</ul></div><div class="ml-hint">点任意一条看详情</div>';
     return h;
   }
 
-  function showTerm(term, rect, expanded) {
+  function showTerm(term, rect, expanded, hint) {
     ensureHost();
-    card.innerHTML = termCard(term, !!expanded);
+    card.innerHTML = termCard(term, !!expanded, hint || '');
+    card.dataset.hint = hint || '';
     card.dataset.rect = JSON.stringify({ left: rect.left, top: rect.top, bottom: rect.bottom });
     placeCard(rect);
     card.querySelector('.ml-body').scrollTop = 0;
@@ -240,7 +249,7 @@
     }
     if (act === 'expand' || act === 'collapse') {
       var term = dict.byId[el.getAttribute('data-id')];
-      if (term) showTerm(term, currentRect(), act === 'expand');
+      if (term) showTerm(term, currentRect(), act === 'expand', card.dataset.hint || '');
       return;
     }
   }
@@ -262,11 +271,11 @@
       if (!rect || (!rect.width && !rect.height)) return;
 
       // 短选区：直接查；长选区：扫出里面所有指标
-      var exact = text.length <= 40 ? dict.lookup(text) : null;
-      if (exact) { showTerm(exact, rect, false); return; }
+      var exact = text.length <= 40 ? dict.resolveMatch(text) : null;
+      if (exact) { showTerm(exact.term, rect, false, exact.hint); return; }
 
       var hits = dict.scan(text, 8);
-      if (hits.length === 1) { showTerm(hits[0].term, rect, false); return; }
+      if (hits.length === 1) { showTerm(hits[0].term, rect, false, hits[0].hint); return; }
       if (hits.length > 1) {
         ensureHost();
         card.innerHTML = listCard(hits);
@@ -333,8 +342,8 @@
   function onHighlightClick(e) {
     var name = e.target && e.target.getAttribute && e.target.getAttribute('data-ml-term');
     if (!name || !dict) return;
-    var t = dict.resolve(name);
-    if (t) showTerm(t, e.target.getBoundingClientRect(), false);
+    var m = dict.resolveMatch(name) || (dict.resolve(name) ? { term: dict.resolve(name), hint: '' } : null);
+    if (m) showTerm(m.term, e.target.getBoundingClientRect(), false, m.hint);
   }
 
   function scheduleHighlight() {

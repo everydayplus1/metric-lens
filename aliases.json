@@ -6,6 +6,24 @@
       "IPDAU"
     ]
   },
+  "_patterns": {
+    "_note": "带数字时间窗的指标用正则识别，不要枚举——ROAS0~ROAS180 列不完，还有 ROAS D28、LTV(D14) 这些变体。lookup 匹配归一化后的文本（已去空格和括号），scan 匹配页面原文。hint 里的 $1 会被替换成捕获到的天数，直接显示在卡片上。",
+    "ROAS0 / ROAS1": {
+      "lookup": "^(?:roas|roi)d?(\\d{1,3})$",
+      "scan": "(?:roas|roi)\\s*d?\\s*(\\d{1,3})",
+      "hint": "ROAS$1 = 截止第 $1 天的累计收入 ÷ 广告花费"
+    },
+    "LTV": {
+      "lookup": "^ltvd?(\\d{1,3})$",
+      "scan": "ltv\\s*\\(?\\s*d?\\s*(\\d{1,3})\\)?",
+      "hint": "LTV$1 = 用户进来后第 $1 天为止的累计收入"
+    },
+    "LT30 / LT180": {
+      "lookup": "^ltd?(\\d{1,3})$",
+      "scan": "\\blt\\s*(\\d{1,3})\\b",
+      "hint": "LT$1 = 用户在 $1 天内平均活跃的天数"
+    }
+  },
   "CPM": [
     "千次展示成本",
     "Cost Per Mille"
@@ -80,18 +98,10 @@
   ],
   "LTV": [
     "生命周期价值",
-    "Lifetime Value",
-    "LTV30",
-    "LTV180",
-    "LTV7",
-    "LTV D7",
-    "LTV(D7)",
-    "LTV(D30)"
+    "Lifetime Value"
   ],
   "LT30 / LT180": [
     "LT",
-    "LT7",
-    "LT90",
     "生命周期长度",
     "LifeTime",
     "平均生命周期"
@@ -102,27 +112,12 @@
     "回报率"
   ],
   "ROAS0 / ROAS1": [
-    "ROAS2",
-    "ROAS3",
-    "ROAS4",
-    "ROAS5",
-    "ROAS6",
-    "ROAS7",
-    "ROAS30",
-    "ROAS180",
-    "ROAS D0",
-    "ROAS D1",
-    "ROAS D2",
-    "ROAS D3",
-    "ROAS D7",
     "回收率",
     "回收曲线",
     "次日回收",
     "首日回收",
     "当日回收",
-    "逐日回收",
-    "ROI0",
-    "ROI1"
+    "逐日回收"
   ],
   "Cohort": [
     "同期群",

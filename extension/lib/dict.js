@@ -45,11 +45,53 @@
       });
     });
     this.scanList.sort(function (a, b) { return b.alias.length - a.alias.length; });
+
+    // 带数字时间窗的写法（ROAS28、LTV14、LT90…）没法枚举成别名，用正则识别
+    this.patterns = (payload.patterns || []).map(function (p) {
+      return {
+        term: self.byId[p.termId],
+        lookup: p.lookup ? new RegExp(p.lookup, 'i') : null,
+        scan: p.scan ? new RegExp(p.scan, 'gi') : null,
+        hint: p.hint || ''
+      };
+    }).filter(function (p) { return !!p.term; });
   }
+
+  function fillHint(tpl, n) {
+    return tpl ? tpl.replace(/\$1/g, n == null ? '' : n) : '';
+  }
+
+  /* 查一个词，返回 {term, hint, matched}；查不到返回 null。
+     三层：别名精确匹配 -> 模式规则 -> 剥掉尾部数字再试一次。 */
+  Dict.prototype.resolveMatch = function (text) {
+    var key = normalize(text);
+    if (!key) return null;
+
+    var t = this.index[key];
+    if (t) return { term: t, hint: '', matched: text };
+
+    for (var i = 0; i < this.patterns.length; i++) {
+      var p = this.patterns[i];
+      if (!p.lookup) continue;
+      var m = key.match(p.lookup);
+      if (m) return { term: p.term, hint: fillHint(p.hint, m[1]), matched: text };
+    }
+
+    // 兜底：ROAS28 这类没被模式覆盖到的写法，至少落到词根上，
+    // 总比选中了却什么都不弹强
+    var raw = String(text).trim();
+    var stripped = raw.replace(/[\s\d]+$/, '');
+    if (stripped.length >= 2 && stripped.length < raw.length) {
+      var t2 = this.index[normalize(stripped)];
+      if (t2) return { term: t2, hint: '', matched: text };
+    }
+    return null;
+  };
 
   /* 精确查一个词（用户选中的短文本） */
   Dict.prototype.lookup = function (text) {
-    return this.index[normalize(text)] || null;
+    var m = this.resolveMatch(text);
+    return m ? m.term : null;
   };
 
   /* 在一段文本里扫出所有已收录名词，按出现顺序返回，去重 */
@@ -66,6 +108,25 @@
       return false;
     }
 
+    // 模式规则优先占位：ROAS28 里的 ROAS 会被词边界挡掉，只有模式能认出来
+    for (var pi = 0; pi < this.patterns.length; pi++) {
+      var pat = this.patterns[pi];
+      if (!pat.scan) continue;
+      pat.scan.lastIndex = 0;
+      var pm;
+      while ((pm = pat.scan.exec(lower)) !== null) {
+        if (pm[0].length === 0) { pat.scan.lastIndex++; continue; }
+        var ps = pm.index, pe = ps + pm[0].length;
+        if (overlaps(ps, pe)) continue;
+        taken.push([ps, pe]);
+        if (!seen[pat.term.id]) {
+          seen[pat.term.id] = true;
+          hits.push({ at: ps, term: pat.term, matched: text.substr(ps, pm[0].length),
+                      hint: fillHint(pat.hint, pm[1]) });
+        }
+      }
+    }
+
     for (var i = 0; i < this.scanList.length; i++) {
       var entry = this.scanList[i];
       var from = 0;
@@ -79,7 +140,7 @@
         taken.push([at, end]);
         if (!seen[entry.term.id]) {
           seen[entry.term.id] = true;
-          hits.push({ at: at, term: entry.term, matched: text.substr(at, entry.lower.length) });
+          hits.push({ at: at, term: entry.term, matched: text.substr(at, entry.lower.length), hint: '' });
         }
       }
     }

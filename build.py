@@ -30,7 +30,7 @@ OUT_PATHS = [
     os.path.join(HERE, 'data', 'terms.json'),
     os.path.join(HERE, 'extension', 'data', 'terms.json'),
 ]
-VERSION = '1.0.3'
+VERSION = '1.0.4'
 
 # 这些标题是概览/串讲，不是可划词的名词，只在面板里出现
 OVERVIEW_PREFIXES = ('先看全局', '实战', '目录')
@@ -168,13 +168,15 @@ def main():
     ap.add_argument('--check', action='store_true')
     args = ap.parse_args()
 
-    manual, reviewed = {}, {}
+    manual, reviewed, patterns_raw = {}, {}, {}
     apath = os.path.join(HERE, 'aliases.json')
     if os.path.exists(apath):
         _raw = json.load(io.open(apath, encoding='utf-8'))
         manual = {k: v for k, v in _raw.items() if not k.startswith('_')}
         reviewed = {k: set(v) for k, v in _raw.get('_reviewed', {}).items()
                     if not k.startswith('_')}
+        patterns_raw = {k: v for k, v in _raw.get('_patterns', {}).items()
+                        if not k.startswith('_')}
 
     files = sorted(f for f in os.listdir(args.src)
                    if f.endswith('.md') and f != 'README.md')
@@ -217,8 +219,23 @@ def main():
             if b in low:
                 problems.append('⚠️ 疑似私有内容未标记 <!-- private -->：%s 含 "%s"' % (t['name'], b))
 
+    # 把模式规则挂到词条 id 上；key 写错或词条改名会让规则静默失效，所以必须校验
+    by_name = {t['name']: t for t in all_terms}
+    patterns = []
+    for name, spec in patterns_raw.items():
+        if name not in by_name:
+            problems.append('⚠️ _patterns 的 "%s" 找不到对应词条，规则会静默失效' % name)
+            continue
+        patterns.append({
+            'termId': by_name[name]['id'],
+            'lookup': spec.get('lookup', ''),
+            'scan': spec.get('scan', ''),
+            'hint': spec.get('hint', ''),
+        })
+
     payload = {
         'version': VERSION,
+        'patterns': patterns,
         'generated': date.today().isoformat(),
         'source': 'personal knowledge base',
         'domains': sorted({t['domain'] for t in all_terms}),
@@ -227,8 +244,8 @@ def main():
 
     n_term = sum(1 for t in all_terms if t['type'] == 'term')
     n_alias = len(seen_alias)
-    print('解析 %d 个文件 → %d 条词条（可划词 %d 条）+ %d 个别名'
-          % (len(files), len(all_terms), n_term, n_alias))
+    print('解析 %d 个文件 → %d 条词条（可划词 %d 条）+ %d 个别名 + %d 条模式规则'
+          % (len(files), len(all_terms), n_term, n_alias, len(patterns)))
     for p in problems:
         print('  ! ' + p)
     if any(p.startswith('⚠️') for p in problems):

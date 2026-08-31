@@ -1,5 +1,25 @@
 {
- "version": "1.0.3",
+ "version": "1.0.4",
+ "patterns": [
+  {
+   "termId": "roas0roas1",
+   "lookup": "^(?:roas|roi)d?(\\d{1,3})$",
+   "scan": "(?:roas|roi)\\s*d?\\s*(\\d{1,3})",
+   "hint": "ROAS$1 = 截止第 $1 天的累计收入 ÷ 广告花费"
+  },
+  {
+   "termId": "ltv",
+   "lookup": "^ltvd?(\\d{1,3})$",
+   "scan": "ltv\\s*\\(?\\s*d?\\s*(\\d{1,3})\\)?",
+   "hint": "LTV$1 = 用户进来后第 $1 天为止的累计收入"
+  },
+  {
+   "termId": "lt30lt180",
+   "lookup": "^ltd?(\\d{1,3})$",
+   "scan": "\\blt\\s*(\\d{1,3})\\b",
+   "hint": "LT$1 = 用户在 $1 天内平均活跃的天数"
+  }
+ ],
  "generated": "2026-08-31",
  "source": "personal knowledge base",
  "domains": [
@@ -274,12 +294,6 @@
    ],
    "aliases": [
     "LTV",
-    "LTV D7",
-    "LTV(D30)",
-    "LTV(D7)",
-    "LTV180",
-    "LTV30",
-    "LTV7",
     "Lifetime Value",
     "生命周期价值",
     "用户生命周期价值"
@@ -306,8 +320,6 @@
     "LT180",
     "LT30",
     "LT30 / LT180",
-    "LT7",
-    "LT90",
     "LifeTime",
     "平均生命周期",
     "生命周期长度",
@@ -353,24 +365,9 @@
     "Cohort"
    ],
    "aliases": [
-    "ROAS D0",
-    "ROAS D1",
-    "ROAS D2",
-    "ROAS D3",
-    "ROAS D7",
     "ROAS0",
     "ROAS0 / ROAS1",
     "ROAS1",
-    "ROAS180",
-    "ROAS2",
-    "ROAS3",
-    "ROAS30",
-    "ROAS4",
-    "ROAS5",
-    "ROAS6",
-    "ROAS7",
-    "ROI0",
-    "ROI1",
     "回收曲线",
     "回收率",
     "回收率的时间窗写法",
