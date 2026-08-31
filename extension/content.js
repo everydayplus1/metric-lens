@@ -153,10 +153,11 @@
 
   function esc(s) { return MetricLensMD.esc(s); }
 
-  function termCard(term, expanded, hint) {
+  function termCard(term, expanded, hint, matched) {
     var h = '';
     h += '<div class="ml-head">';
-    h += '<span class="ml-name">' + esc(term.name) + '</span>';
+    var heading = (hint && matched) ? matched : term.name;
+    h += '<span class="ml-name">' + esc(heading) + '</span>';
     if (term.subtitle) h += '<span class="ml-sub">' + esc(term.subtitle) + '</span>';
     h += '<span class="ml-domain">' + esc(term.domain) + '</span>';
     h += '<button class="ml-close" data-act="close" title="关闭">&#10005;</button>';
@@ -202,10 +203,11 @@
     return h;
   }
 
-  function showTerm(term, rect, expanded, hint) {
+  function showTerm(term, rect, expanded, hint, matched) {
     ensureHost();
-    card.innerHTML = termCard(term, !!expanded, hint || '');
+    card.innerHTML = termCard(term, !!expanded, hint || '', matched || '');
     card.dataset.hint = hint || '';
+    card.dataset.matched = matched || '';
     card.dataset.rect = JSON.stringify({ left: rect.left, top: rect.top, bottom: rect.bottom });
     placeCard(rect);
     card.querySelector('.ml-body').scrollTop = 0;
@@ -244,12 +246,12 @@
 
     if (act === 'goto') {
       var t = dict.resolve(el.getAttribute('data-term'));
-      if (t) showTerm(t, currentRect(), false);
+      if (t) showTerm(t, currentRect(), false, '', '');
       return;
     }
     if (act === 'expand' || act === 'collapse') {
       var term = dict.byId[el.getAttribute('data-id')];
-      if (term) showTerm(term, currentRect(), act === 'expand', card.dataset.hint || '');
+      if (term) showTerm(term, currentRect(), act === 'expand', card.dataset.hint || '', card.dataset.matched || '');
       return;
     }
   }
@@ -272,10 +274,10 @@
 
       // 短选区：直接查；长选区：扫出里面所有指标
       var exact = text.length <= 40 ? dict.resolveMatch(text) : null;
-      if (exact) { showTerm(exact.term, rect, false, exact.hint); return; }
+      if (exact) { showTerm(exact.term, rect, false, exact.hint, exact.matched); return; }
 
       var hits = dict.scan(text, 8);
-      if (hits.length === 1) { showTerm(hits[0].term, rect, false, hits[0].hint); return; }
+      if (hits.length === 1) { showTerm(hits[0].term, rect, false, hits[0].hint, hits[0].matched); return; }
       if (hits.length > 1) {
         ensureHost();
         card.innerHTML = listCard(hits);
@@ -343,7 +345,7 @@
     var name = e.target && e.target.getAttribute && e.target.getAttribute('data-ml-term');
     if (!name || !dict) return;
     var m = dict.resolveMatch(name) || (dict.resolve(name) ? { term: dict.resolve(name), hint: '' } : null);
-    if (m) showTerm(m.term, e.target.getBoundingClientRect(), false, m.hint);
+    if (m) showTerm(m.term, e.target.getBoundingClientRect(), false, m.hint, m.matched);
   }
 
   function scheduleHighlight() {
