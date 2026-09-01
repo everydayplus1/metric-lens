@@ -30,7 +30,7 @@ OUT_PATHS = [
     os.path.join(HERE, 'data', 'terms.json'),
     os.path.join(HERE, 'extension', 'data', 'terms.json'),
 ]
-VERSION = '1.0.5'
+VERSION = '1.0.6'
 
 # 这些标题是概览/串讲，不是可划词的名词，只在面板里出现
 OVERVIEW_PREFIXES = ('先看全局', '实战', '目录')
@@ -210,6 +210,16 @@ def main():
                 problems.append(
                     '别名可疑："%s" 被列为 %s 的别名，但正文里给了它独立的英文全称 —— '
                     '它多半该单独建一个词条' % (a, t['name']))
+
+    # 知识库 README 是人读的索引，很容易在加词条时忘记同步（已经漏过一次 ARPPU）
+    readme = os.path.join(args.src, 'README.md')
+    if os.path.exists(readme):
+        rd = io.open(readme, encoding='utf-8').read()
+        for t in all_terms:
+            if t['type'] != 'term':
+                continue
+            if t['name'] not in rd:
+                problems.append('README 索引里没有 "%s"，加了词条忘了更新索引？' % t['name'])
 
     # 泄漏兜底检查
     BANNED = ['arrowdoodle', 'arrowflow', 'skyloop', 'liuchengxiang']

@@ -80,9 +80,14 @@
   ],
   "ARPU": [
     "每用户平均收入",
-    "Average Revenue Per User",
+    "Average Revenue Per User"
+  ],
+  "ARPDAU": [
+    "Average Revenue Per Daily Active User",
+    "日活人均收入",
     "日ARPU",
-    "日 ARPU"
+    "日 ARPU",
+    "ARPDAU"
   ],
   "ARPPU": [
     "Average Revenue Per Paying User",

@@ -107,6 +107,17 @@ ok(sc[0].hint.indexOf('28') !== -1, '长句里也带上 hint', sc[0].hint);
 var sc2 = dict.scan('LT90 撑不住 ROAS180');
 eq(sc2.length, 2, 'LT90 和 ROAS180 分属两个词条', sc2.map(function(h){return h.term.name}).join(','));
 
+/* --- ARPU 家族三兄弟必须各归各位 --- */
+eq(nameOf(dict.lookup('ARPDAU')), 'ARPDAU', 'ARPDAU');
+eq(nameOf(dict.lookup('日ARPU')), 'ARPDAU', '「日ARPU」其实就是 ARPDAU');
+eq(nameOf(dict.lookup('ARPU')), 'ARPU', 'ARPU 仍指向自己');
+eq(nameOf(dict.lookup('ARPPU')), 'ARPPU', 'ARPPU 仍指向自己');
+var fam = ['ARPU','ARPDAU','ARPPU'].map(function (k) { return nameOf(dict.lookup(k)); });
+eq(new Set(fam).size, 3, '三者互不相同', fam.join(','));
+/* 拆成两个文件后领域标签要对 */
+eq(dict.lookup('ARPDAU').domain, '变现与用户价值', 'ARPDAU 属于变现侧');
+eq(dict.lookup('CPI').domain, '买量与成本', 'CPI 属于买量侧');
+
 /* --- 长句扫词 --- */
 var hits = dict.scan('这个渠道 eCPM 25 元，IPU 4.5，ROAS D7 达到 35%，可以加预算');
 var names = hits.map(function (h) { return h.term.name; });
