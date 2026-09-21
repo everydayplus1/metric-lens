@@ -118,6 +118,19 @@ eq(new Set(fam).size, 3, '三者互不相同', fam.join(','));
 eq(dict.lookup('ARPDAU').domain, '变现与用户价值', 'ARPDAU 属于变现侧');
 eq(dict.lookup('CPI').domain, '买量与成本', 'CPI 属于买量侧');
 
+/* --- Meta 投放的两组三字母缩写，只差一个字母，绝不能串 --- */
+eq(nameOf(dict.lookup('AEO')), 'AEO / VO', 'AEO 指向事件/价值优化');
+eq(nameOf(dict.lookup('VO')), 'AEO / VO', 'VO');
+eq(nameOf(dict.lookup('ABO')), 'ABO / CBO', 'ABO 指向预算模式');
+eq(nameOf(dict.lookup('CBO')), 'ABO / CBO', 'CBO');
+ok(nameOf(dict.lookup('AEO')) !== nameOf(dict.lookup('ABO')), 'AEO 与 ABO 是两个词条');
+eq(nameOf(dict.lookup('应用事件优化')), 'AEO / VO', '中文名');
+eq(nameOf(dict.lookup('Value Optimization')), 'AEO / VO', '英文全称');
+/* 同一句里出现要各归各位 */
+var mix = dict.scan('这条 campaign 用 CBO，广告组走 AEO 优化首充').map(function (h) { return h.term.name; });
+ok(mix.indexOf('ABO / CBO') !== -1 && mix.indexOf('AEO / VO') !== -1 && mix.indexOf('Campaign') !== -1,
+   '一句话里 CBO / AEO / campaign 各自命中', mix.join(','));
+
 /* --- 长句扫词 --- */
 var hits = dict.scan('这个渠道 eCPM 25 元，IPU 4.5，ROAS D7 达到 35%，可以加预算');
 var names = hits.map(function (h) { return h.term.name; });
