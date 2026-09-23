@@ -177,5 +177,15 @@
     "MMP",
     "归因平台",
     "Mobile Measurement Partner"
+  ],
+  "WtoA / AtoA": [
+    "Web to App",
+    "W2A",
+    "Web2App",
+    "Web-to-App",
+    "App to App",
+    "A2A",
+    "商店直投",
+    "应用直投"
   ]
 }

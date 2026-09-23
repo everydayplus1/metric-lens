@@ -131,6 +131,15 @@ var mix = dict.scan('这条 campaign 用 CBO，广告组走 AEO 优化首充').m
 ok(mix.indexOf('ABO / CBO') !== -1 && mix.indexOf('AEO / VO') !== -1 && mix.indexOf('Campaign') !== -1,
    '一句话里 CBO / AEO / campaign 各自命中', mix.join(','));
 
+/* --- 投放路径：WtoA 与 AtoA 是一对选择，同指一条词条 --- */
+['WtoA','AtoA','W2A','Web to App','Web2App','商店直投'].forEach(function (k) {
+  eq(nameOf(dict.lookup(k)), 'WtoA / AtoA', k);
+});
+/* 三组「X / Y」型词条互不串台（缩写都以 A/C 开头，形近） */
+var pairs = ['WtoA / AtoA', 'AEO / VO', 'ABO / CBO'];
+var got = ['AtoA', 'AEO', 'ABO'].map(function (k) { return nameOf(dict.lookup(k)); });
+eq(JSON.stringify(got), JSON.stringify(pairs), '三组形近缩写各归各位', got.join(','));
+
 /* --- 长句扫词 --- */
 var hits = dict.scan('这个渠道 eCPM 25 元，IPU 4.5，ROAS D7 达到 35%，可以加预算');
 var names = hits.map(function (h) { return h.term.name; });

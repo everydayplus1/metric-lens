@@ -53,11 +53,11 @@
 
 ## 词库
 
-当前 **32 条词条**，覆盖五个领域：
+当前 **33 条词条**，覆盖五个领域：
 
 - **买量与成本** —— CPM、CVR、CPI、CPA、CAC、ROAS、ROAS0/ROAS1、Cohort
 - **变现与用户价值** —— eCPM、DAU、ARPU、ARPDAU、ARPPU、IPU、LTV、LT30/LT180
-- **投放与出价** —— Campaign、AEO/VO、ABO/CBO
+- **投放与出价** —— Campaign、WtoA/AtoA、AEO/VO、ABO/CBO
 - **素材与创意** —— Hook rate、Thruplay、CTR、CPC、IPM
 - **数据分析与归因** —— Firebase、GA4、AppsFlyer
 
